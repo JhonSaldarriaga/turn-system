@@ -25,6 +25,7 @@ public class User {
 		this.cell = cell;
 		this.attended = attended;
 		this.suspended = suspended;
+		turnsObtained = new ArrayList<Turn>();
 	}
 
 	public boolean isAttended() {

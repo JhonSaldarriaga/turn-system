@@ -1,4 +1,5 @@
 package model;
+import java.time.*;
 
 public class Turn {
 
@@ -7,10 +8,14 @@ public class Turn {
 	
 	private User user;
 	private TypeTurn type;
+	private Date date;
 	
-	public Turn(char le, int num) {
+	public Turn(char le, int num, User us, TypeTurn ty, LocalDate d, LocalTime t) {
 		letter = le;
 		number = num;
+		user = us;
+		date = new Date(d, t);
+		type = ty;
 	}
 
 	public User getUser() {
@@ -31,5 +36,9 @@ public class Turn {
 
 	public TypeTurn getType() {
 		return type;
+	}
+	
+	public Date getDate() {
+		return date;
 	}
 }
