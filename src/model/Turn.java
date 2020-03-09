@@ -4,13 +4,13 @@ import java.time.*;
 public class Turn {
 
 	private char letter;
-	private int number;
+	private String number;
 	
 	private User user;
 	private TypeTurn type;
 	private Date date;
 	
-	public Turn(char le, int num, User us, TypeTurn ty, LocalDate d, LocalTime t) {
+	public Turn(char le, String num, User us, TypeTurn ty, LocalDate d, LocalTime t) {
 		letter = le;
 		number = num;
 		user = us;
@@ -30,7 +30,7 @@ public class Turn {
 		return letter;
 	}
 
-	public int getNumber() {
+	public String getNumber() {
 		return number;
 	}
 

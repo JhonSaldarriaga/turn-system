@@ -20,8 +20,16 @@ public class Date {
 		dateTime = LocalDateTime.of(d, t);
 	}
 	
-	public LocalDateTime getDate() {
+	public LocalDateTime getDateTime() {
 		return dateTime;
+	}
+	
+	public LocalDate getDate() {
+		return d;
+	}
+	
+	public LocalTime getTime() {
+		return t;
 	}
 	
 	public void changeTime(int hour, int minute, int second) {
@@ -30,7 +38,7 @@ public class Date {
 	}
 	
 	public void changeDate(int day, int month, int year) {
-		d = LocalDate.of(day, month, year);
+		d = LocalDate.of(year, month, day);
 		dateTime = LocalDateTime.of(d, t);
 	}
 }
