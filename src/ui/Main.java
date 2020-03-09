@@ -3,6 +3,9 @@ package ui;
 import model.*;
 import java.util.*;
 
+import customExceptions.MandatoryParameterNotTypeException;
+import customExceptions.TypeTurnExistException;
+import customExceptions.UserExistException;
 import customExceptions.UserNotRegisterException;
 
 import java.io.FileNotFoundException;
@@ -14,16 +17,21 @@ public class Main {
 	private Scanner scan;
 	private TurnSystem ts;
 	private boolean firstTime;
+	private TypeId typeId;
 	
 	public static void main(String [] args){
 		Main main = new Main();
-		main.menu();
+		main.pruebas();
 	}
 	
 	public Main() {
 		scan = new Scanner(System.in);
 		firstTime = true;
 		chooseBeggin();
+	}
+	
+	public void pruebas() {
+		
 	}
 	
 	public void menu() {
@@ -49,15 +57,15 @@ public class Main {
 			} while(continueOption);
 			
 			switch(option) {
-			case 1:
+			case 1: addUser();
 				break;
-			case 2:
+			case 2: createTypeTurn();
 				break;
 			case 3:
 				break;
 			case 4:
 				break;
-			case 5:
+			case 5: editDate();
 				break;
 			case 6:
 				break;
@@ -73,6 +81,115 @@ public class Main {
 			
 			System.out.println("-----------------------");
 		}
+	}
+	
+	/**
+	 * Este metodo es una de las opciones del menu de TurnManager, permite añadir un usuario al programa TurnManager(tm).
+	 * <b>pre:</b> El TurnManager(tm) debe de estar inicializado.<br>
+	 * <b>pos:</b> Se ha añadido un nuevo usuario al programa TurnManager(tm).<br>
+	 */
+	public void addUser() {
+		System.out.println("Type name");
+		String name = scan.nextLine();
+		System.out.println("Type lastname");
+		String lastName = scan.nextLine();
+		System.out.println("Type address");
+		String address = scan.nextLine();
+		System.out.println("Type cell");
+		String cell = scan.nextLine();
+		System.out.println("Choose an option for type id: ");
+		System.out.println("");
+		String typeId = null;
+		boolean choose = false;
+		boolean continueOption;
+		int option = 0;
+		int cont = 1;
+		while(!choose) {
+			for(TypeId type : TypeId.values()) {
+				System.out.println(cont+". "+type.getType());
+				cont++;
+			}
+			continueOption = true;
+			do {
+				try{
+					option = Integer.parseInt(scan.nextLine());
+					continueOption = false;
+				} catch(NumberFormatException e) {
+					System.out.println("ERROR: the option must be int, try again");
+					continueOption = true;
+				}
+			} while(continueOption);
+			
+			switch(option) {
+			case 1:	typeId = this.typeId.CD.getType();
+					choose = true;
+				break;
+			case 2: typeId = this.typeId.CR.getType();
+					choose = true;
+				break;
+			case 3: typeId = this.typeId.FC.getType();
+					choose = true;
+				break;	
+			case 4: typeId = this.typeId.ID.getType();
+					choose = true;
+				break;
+			case 5:	typeId =this.typeId.PP.getType();
+					choose = true;
+				break;
+			default: System.out.println("not valid option. Please, type a valid option");
+				break;
+			}
+		}
+		
+		System.out.println("Type number id");
+		String numberId = scan.nextLine();
+
+		try {
+			if(!name.equals("") && !lastName.equals("") && !numberId.equals("")) {
+				try{
+					ts.addUser(numberId, typeId, name, lastName, address, cell);
+				}catch (UserExistException e) {
+					System.out.println(e.getMessage());
+				}
+			}
+			else
+				throw new MandatoryParameterNotTypeException(name, lastName, numberId, typeId);
+			
+		}catch (MandatoryParameterNotTypeException e) {
+			System.out.println(e.getMessage()+"\n"+e.getProblem());
+		}
+	}
+	
+	public void createTypeTurn() {
+		System.out.println("Type the name of the type");
+		String type = scan.nextLine();
+		System.out.println("Type the duration of the type turn");
+		float du = 0;
+		boolean continueOption = true;
+		do {
+			try{
+				du = Float.parseFloat(scan.nextLine());
+				System.out.println(du);
+				continueOption = false;
+			} catch(NumberFormatException e) {
+				System.out.println("ERROR: the option must be float, try again");
+				continueOption = true;
+			}
+		} while(continueOption);
+		
+		try {
+			ts.addTypeTurn(du, type);
+		}catch(TypeTurnExistException e) {
+			System.out.println(e.getProblem());
+		}
+	}
+	
+	public void editDate() {
+		int [] date = getDate();
+		LocalDate d = LocalDate.of(date[0], date[1], date[2]);
+		LocalTime t = LocalTime.of(date[3], date[4], date[5]);
+		
+		ts.editDate(d, t);
 	}
 	
 	/**

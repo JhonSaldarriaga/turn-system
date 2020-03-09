@@ -15,16 +15,15 @@ public class User {
 	
 	private ArrayList<Turn> turnsObtained;
 	
-	public User(String id, String typeId, String name, String lastName, String address, String cell, boolean attended,
-			boolean suspended) {
+	public User(String id, String typeId, String name, String lastName, String address, String cell) {
 		this.id = id;
 		this.typeId = typeId;
 		this.name = name;
 		this.lastName = lastName;
 		this.address = address;
 		this.cell = cell;
-		this.attended = attended;
-		this.suspended = suspended;
+		attended = false;
+		suspended = false;
 		turnsObtained = new ArrayList<Turn>();
 	}
 

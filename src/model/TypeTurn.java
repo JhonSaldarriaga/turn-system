@@ -1,6 +1,6 @@
 package model;
 
-public class TypeTurn {
+public class TypeTurn implements Comparable<TypeTurn>{
 
 	private float duration;
 	private String type;
@@ -16,5 +16,10 @@ public class TypeTurn {
 
 	public String getType() {
 		return type;
+	}
+
+	@Override
+	public int compareTo(TypeTurn t2) {
+		return type.compareTo(t2.getType());
 	}
 }

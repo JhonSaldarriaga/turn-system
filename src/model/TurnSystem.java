@@ -2,7 +2,10 @@ package model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 
+import customExceptions.TypeTurnExistException;
+import customExceptions.UserExistException;
 import customExceptions.UserNotRegisterException;
 
 import java.time.*;
@@ -116,12 +119,9 @@ public class TurnSystem implements Serializable{
 		date.changeDate(newDay, newMonth, newYear);
 	}
 	
-	public void editDate(int hour, int minute, int second, int day, int month, int year) {
-		LocalDate newDate = LocalDate.of(year, month, day);
-		LocalTime newTime = LocalTime.of(hour, minute, second);
-		
-		date.changeDate(day, month, year);
-		date.changeTime(hour, minute, second);
+	public void editDate(LocalDate d, LocalTime t) {
+		date.changeDate(d.getDayOfMonth(), d.getMonthValue(), d.getYear());
+		date.changeTime(t.getHour(), t.getMinute(), t.getSecond());
 		setDifferences();
 	}
 	
@@ -130,13 +130,43 @@ public class TurnSystem implements Serializable{
 		return showDate.getDayOfMonth() + "/" + showDate.getMonthValue() + "/" + showDate.getYear() + " --- " + showDate.getHour() + ":" + showDate.getMinute() + ":" + showDate.getSecond();
 	}
 	
+	public void addTypeTurn(float du, String ty) throws TypeTurnExistException {
+		TypeTurn t = searchTypeTurn(ty);
+		if(t==null) {
+			typesOfTurns.add(new TypeTurn(du, ty));	
+		}else {
+			throw new TypeTurnExistException(du, t.getDuration(), ty);
+		}
+	}
+	
+	public TypeTurn searchTypeTurn(String ty) {
+		Collections.sort(typesOfTurns);
+		int low = 0;
+		int high = typesOfTurns.size()-1;
+		
+		while(low<=high)
+		   {
+		     int mid=(low+high)/2;
+		     if(typesOfTurns.get(mid).getType().compareTo(ty)<0){
+		         low=mid+1;
+		     }else{	
+		    	 if(typesOfTurns.get(mid).getType().compareTo(ty)>0)
+		    		 high=mid-1;
+		    	 else{
+			         return typesOfTurns.get(mid);
+			     }
+		     }
+		   }
+		   return null;        
+	}
+	
 	/**
 	 * Este metodo permite buscar a un usuario en su arrayList y retornar su posicion.
 	 * <b>pre:</b> El arrayList (users) debe de estar inicializado.<br>
 	 * @param id Número de cédula del usuario a buscar. id != null.
 	 * @return Retorna la posicion en donde se encuentra el usuario en el ArrayList, si no lo encontró, retornará -1.
 	 */
-	public int searchPerson(String id) {
+	public int searchPersonPosition(String id) {
 		int position = -1;
 		for(int i = 0; i<users.size(); i++) {
 			if(users.get(i).getId().equals(id)) {
@@ -146,6 +176,30 @@ public class TurnSystem implements Serializable{
 		}
 		
 		return position;
+	}
+	
+	/**
+	 * Este metodo permite añadir un nuevo usuario al programa.
+	 * <b>pre:</b> El ArrayList(users) debe de estar inicializado.<br>
+	 * <b>pos:</b> El ArrayList(users) se ha actualizado con un nuevo usuario.<br>
+	 * @param id Id del usuario a registrar. id != null.
+	 * @param typeId Tipo de documento de identificación del usuario a registrar.
+	 * @param name Nombre del usuario a registrar.
+	 * @param lastName Apellido del usuario a registrar.
+	 * @param address Dirección del usuario a registrar
+	 * @param cell Numero de telefono del usuario a registrar.
+	 * @throws UserExistException Si el usuario ya está registrado en el programa, salta la excepcion.
+	 */
+	public void addUser(String id, String typeId, String name, String lastName, String address, String cell) throws UserExistException {
+		
+		int add = searchPersonPosition(id);
+		
+		if(add == -1) {
+			users.add(new User(id, typeId, name, lastName, address, cell));
+		}
+		else {
+			throw new UserExistException(id);
+		}
 	}
 	
 	public Date getDate() {
