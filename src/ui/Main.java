@@ -31,7 +31,17 @@ public class Main {
 	}
 	
 	public void pruebas() {
+		ArrayList<String> hola1 = new ArrayList<String>();
+		hola1.add("b");
+		hola1.add("z");
+		hola1.add("m");
+		hola1.add("d");
 		
+		ArrayList<String> hola2 = hola1;
+		Collections.sort(hola2);
+		for (int i = 0; i < hola1.size(); i++) {
+			System.out.println(hola1.get(i));
+		}
 	}
 	
 	public void menu() {

@@ -1,7 +1,7 @@
 package model;
 import java.time.*;
 
-public class Turn {
+public class Turn implements Comparable<Turn>{
 
 	private char letter;
 	private String number;
@@ -40,5 +40,11 @@ public class Turn {
 	
 	public Date getDate() {
 		return date;
+	}
+
+	@Override
+	public int compareTo(Turn t) {
+		LocalDateTime d = date.getDateTime();
+		return d.compareTo(t.getDate().getDateTime());
 	}
 }

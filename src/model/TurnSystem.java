@@ -202,7 +202,167 @@ public class TurnSystem implements Serializable{
 		}
 	}
 	
+	/**
+	 *Este metodo permite asignarle un turno a un Usuario, el turno es necesariamente consecutivo al ultimo ingresado en el ArrayList(turns).
+	 *<b>pre:</b> El ArrayList(turns) debe de estar inicializado.<br>
+	 *<b>pre:</b> El ArrayList(users) debe de estar inicializado.<br>
+	 *<b>pre:</b> El usuario al que se le va asignar el turno debe de existir en el programa.<br>
+	 *<b>pos:</b> Se ha añadido un nuevo Turno al ArrayList(turns), consecutivo al ultimo ingresado.<br>
+	 * @param id Id del usuario al que se le asignará el turno. id != null.
+	 * @return un objeto Turno el cual será diferente de null si se le quiere asignar a un turno a un usuario que ya tiene un turno anteriormente, en este caso se le retornará el turno que posee.
+	 * @throws UserNotRegisterException Esta excepción se lanza cuando se le intenta asignar un turno a un usuario que no existe en el programa.
+	 */
+	public Turn assignTurn(String id, TypeTurn t) throws UserNotRegisterException{
+		if(searchPersonPosition(id)==-1) {
+			throw new UserNotRegisterException(id);
+		}
+		else {
+			if(existActiveTurn(id)!=-1)
+				return turns.get(existActiveTurn(id));
+			else {
+				if(turns.size()>=1) {
+					char letter = turns.get(turns.size()-1).getLetter();
+					String position = turns.get(turns.size()-1).getNumber();
+					
+					if(Integer.parseInt(position)==99) {
+						position = "00";
+						if(letter!='Z') {
+							for(int i=0; i<alphabet.length; i++) {
+								if(alphabet[i].getLetter()==letter) {
+									letter=alphabet[i+1].getLetter();
+									break;
+								}
+							}
+						}else
+							letter='A';
+							
+						LocalDateTime date = assignDateAtTurn();
+						
+						turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
+						
+						return null;
+						
+					}else {
+						if(Integer.parseInt(position)<99 && Integer.parseInt(position)>=9) {
+							position = ""+(Integer.parseInt(position)+1);
+							
+							
+							LocalDateTime date = assignDateAtTurn();
+							turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
+							return null;
+						}
+						else {
+							if(Integer.parseInt(position)<9) {
+								position = "0"+(Integer.parseInt(position)+1);
+								
+								LocalDateTime date = assignDateAtTurn();
+								
+								turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
+								return null;
+							}
+							else {
+								return null;
+							}
+						}
+					}
+				}
+				else {
+					LocalDateTime date = this.date.getDateTime();
+					turns.add(new Turn('A', "00", users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
+					return null;
+				}
+			}
+		}
+	}
+	
+	public LocalDateTime assignDateAtTurn() {
+		LocalDate dateNow = turns.get(turns.size()-1).getDate().getDate();
+		LocalTime timeNow = turns.get(turns.size()-1).getDate().getTime();
+		int newSecond = 0;
+		int newMinute = 0;
+		int newHour = 0;
+		int newDay = 0;
+		int newMonth = 0;
+		int newYear = 0;
+		
+		newSecond = timeNow.getSecond() + WAIT_TIME;
+		if(newSecond >= 60) {
+			newSecond = newSecond - 60;
+			newMinute++;
+		}
+		
+		newMinute += timeNow.getMinute() + turns.get(turns.size()-1).getType().getDuration();
+		if(newMinute >= 60) {
+			newMinute = newMinute - 60;
+			newHour++;
+		}
+		
+		newHour += timeNow.getHour();
+		if(newHour>=24) {
+			newHour = newHour - 24;
+			newDay ++;
+		}
+		
+		newMonth = dateNow.getMonthValue();
+		if(newMonth>=13) {
+			newMonth = newMonth - 12;
+			newYear++;
+		}
+		
+		newDay += dateNow.getDayOfMonth();
+		if(newMonth == 11 || newMonth == 4 || newMonth == 6 || newMonth == 9) {
+			if(newDay>=31) {
+				newDay = newDay - 30;
+				newMonth++;
+			}
+		}else {
+			if(newMonth == 2) {
+				if(newDay>=29) {
+					newDay = newDay - 28;
+					newMonth++;
+				}
+			}else {
+				if(newDay>=32) {
+					newDay = newDay - 31;
+					newMonth++;
+				}
+			}
+		}
+		if(newMonth>=13) {
+			newMonth = newMonth - 12;
+			newYear++;
+		}
+		
+		newYear += dateNow.getYear();
+		
+		LocalDate d = LocalDate.of(newYear, newMonth, newDay);
+		LocalTime t = LocalTime.of(newHour, newMinute, newSecond);
+		
+		return LocalDateTime.of(d, t);
+	}
+	
 	public Date getDate() {
 		return date;
 	}
+	
+	//Con comparator y comparable.
+	public void sortUsersByName() {
+		
+	}
+
+	public int existActiveTurn(String id) {
+		boolean found = false;
+		int position = -1;
+		
+		for(int i=0; i<turns.size() && found == false; i++) {
+			if(turns.get(i).getUser().getId().equals(id) && !turns.get(i).getUser().isAttended()) {
+				found = true;
+				position = i;
+			}
+		}
+		
+		return position;
+	}
+	
+	
 }
