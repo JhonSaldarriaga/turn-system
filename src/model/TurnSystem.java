@@ -2,6 +2,9 @@ package model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+
+import customExceptions.UserNotRegisterException;
+
 import java.time.*;
 
 public class TurnSystem implements Serializable{
@@ -16,8 +19,10 @@ public class TurnSystem implements Serializable{
 	private ArrayList<User> users;
 	private Date date;
 	private int[] differences;//year, month, day, hour, minutes, second.
+	private Alphabet[] alphabet;
 	
 	public TurnSystem() {
+		alphabet = Alphabet.values();
 		date = new Date(LocalDate.now(), LocalTime.now());
 		actualTurn = new Turn('A', "00", null, null, LocalDate.now(), LocalTime.now());
 		turns = new ArrayList<Turn>();
@@ -27,6 +32,7 @@ public class TurnSystem implements Serializable{
 	}
 	
 	public TurnSystem(LocalDate d, LocalTime t) {
+		alphabet = Alphabet.values();
 		date = new Date(d, t);
 		actualTurn = new Turn('A', "00", null, null, d, t);
 		turns = new ArrayList<Turn>();
@@ -114,15 +120,35 @@ public class TurnSystem implements Serializable{
 		LocalDate newDate = LocalDate.of(year, month, day);
 		LocalTime newTime = LocalTime.of(hour, minute, second);
 		
-		if(date.getDate().isBefore(newDate)) {
-			date.changeDate(day, month, year);
-			date.changeTime(hour, minute, second);
-			setDifferences();
-		}
+		date.changeDate(day, month, year);
+		date.changeTime(hour, minute, second);
+		setDifferences();
 	}
 	
 	public String showDateTime() {
 		LocalDateTime showDate = date.getDateTime();
 		return showDate.getDayOfMonth() + "/" + showDate.getMonthValue() + "/" + showDate.getYear() + " --- " + showDate.getHour() + ":" + showDate.getMinute() + ":" + showDate.getSecond();
+	}
+	
+	/**
+	 * Este metodo permite buscar a un usuario en su arrayList y retornar su posicion.
+	 * <b>pre:</b> El arrayList (users) debe de estar inicializado.<br>
+	 * @param id Número de cédula del usuario a buscar. id != null.
+	 * @return Retorna la posicion en donde se encuentra el usuario en el ArrayList, si no lo encontró, retornará -1.
+	 */
+	public int searchPerson(String id) {
+		int position = -1;
+		for(int i = 0; i<users.size(); i++) {
+			if(users.get(i).getId().equals(id)) {
+				position = i;
+				break;
+			}
+		}
+		
+		return position;
+	}
+	
+	public Date getDate() {
+		return date;
 	}
 }
