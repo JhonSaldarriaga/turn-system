@@ -40,7 +40,10 @@ public class MandatoryParameterNotTypeException extends Exception{
 	public String getProblem() {
 		String cause = "Parameters empty are: ";
 		for(int i=0; i<parametersNotTyped.size(); i++) {
-			cause+=parametersNotTyped.get(i)+"-";
+			if(i<parametersNotTyped.size()-1)
+				cause+=parametersNotTyped.get(i)+"-";
+			else
+				cause+=parametersNotTyped.get(i);
 		}
 		
 		return cause;

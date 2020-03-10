@@ -3,6 +3,7 @@ package ui;
 import model.*;
 import java.util.*;
 
+import customExceptions.ExistActiveTurnException;
 import customExceptions.MandatoryParameterNotTypeException;
 import customExceptions.TypeTurnExistException;
 import customExceptions.UserExistException;
@@ -19,9 +20,9 @@ public class Main {
 	private boolean firstTime;
 	private TypeId typeId;
 	
-	public static void main(String [] args){
+	public static void main(String [] args) throws InterruptedException{
 		Main main = new Main();
-		main.pruebas();
+		main.menu();
 	}
 	
 	public Main() {
@@ -30,18 +31,8 @@ public class Main {
 		chooseBeggin();
 	}
 	
-	public void pruebas() {
-		ArrayList<String> hola1 = new ArrayList<String>();
-		hola1.add("b");
-		hola1.add("z");
-		hola1.add("m");
-		hola1.add("d");
-		
-		ArrayList<String> hola2 = hola1;
-		Collections.sort(hola2);
-		for (int i = 0; i < hola1.size(); i++) {
-			System.out.println(hola1.get(i));
-		}
+	public void pruebas(){
+
 	}
 	
 	public void menu() {
@@ -52,8 +43,8 @@ public class Main {
 		System.out.println("-----------------------");
 		System.out.println("     W E L C O M E     ");
 		System.out.println("-----------------------");
-		System.out.println(ts.showDateTime()+"\n");
 		while(!finish) {
+			System.out.println(ts.showDateTime()+"\n");
 			System.out.println("1. Add user.\n2. Create new typeTurn.\n3. Assign turn.\n4. Attend all the turns until the actuality.\n5. Change actual date and time.\n6. Generate a report with all the turns that a user has requested.\n7. Generate a report with all the people who have come to have a specific turn.\n8. Generate random users.\n9. Generate random turns");
 			continueOption = true;
 			do {
@@ -71,9 +62,9 @@ public class Main {
 				break;
 			case 2: createTypeTurn();
 				break;
-			case 3:
+			case 3: assignTurn();
 				break;
-			case 4:
+			case 4: 
 				break;
 			case 5: editDate();
 				break;
@@ -90,6 +81,7 @@ public class Main {
 			}
 			
 			System.out.println("-----------------------");
+			ts.upgradeTheTime();
 		}
 	}
 	
@@ -158,6 +150,7 @@ public class Main {
 			if(!name.equals("") && !lastName.equals("") && !numberId.equals("")) {
 				try{
 					ts.addUser(numberId, typeId, name, lastName, address, cell);
+					System.out.println("User has been added");
 				}catch (UserExistException e) {
 					System.out.println(e.getMessage());
 				}
@@ -170,6 +163,46 @@ public class Main {
 		}
 	}
 	
+	/**
+	 * Este metodo es una de las opciones del menu de TurnManager, permite asignar un turno a un usuario de TurnManager(tm).
+	 * <b>pre:</b> El TurnManager(tm) debe de estar inicializado.<br>
+	 * <b>pos:</b> Se ha asignado un turno a un usuario existente en el programa TurnManager(tm).<br>
+	 */
+	public void assignTurn() {
+		if(ts.showAllTypeTurns()!=null) {
+			System.out.println("Type the number id of the person you want to register");
+			String id = scan.nextLine();
+			
+			int option = 0;
+			boolean continueOption = true;
+			do {
+				try{
+					System.out.println(ts.showAllTypeTurns());
+					option = Integer.parseInt(scan.nextLine());
+					if(option>ts.getTypesOfTurns().size() || option<1) {
+						System.out.println("Invalid option, the number must be in the list.");
+					}else {
+						continueOption = false;
+					}
+				} catch(NumberFormatException e) {
+					System.out.println("ERROR: the option must be int, try again");
+					continueOption = true;
+				}
+			} while(continueOption);
+			
+			try {
+				ts.assignTurn(id, ts.getTypesOfTurns().get(option-1));
+				System.out.println("Turn added correctly");
+			} catch (UserNotRegisterException e) {
+				System.out.println(e.getMessage());
+			} catch (ExistActiveTurnException e) {
+				System.out.println("The turn already exist:\n" + "Turn: " + e.getTurn() + " --- " + e.getType());
+			}
+		}else {
+			System.out.println("The types of the turns do not exist yet. Please, create the types of turns");
+		}
+	}
+	
 	public void createTypeTurn() {
 		System.out.println("Type the name of the type");
 		String type = scan.nextLine();
@@ -179,7 +212,6 @@ public class Main {
 		do {
 			try{
 				du = Float.parseFloat(scan.nextLine());
-				System.out.println(du);
 				continueOption = false;
 			} catch(NumberFormatException e) {
 				System.out.println("ERROR: the option must be float, try again");
@@ -189,6 +221,7 @@ public class Main {
 		
 		try {
 			ts.addTypeTurn(du, type);
+			System.out.println("The type has been added.");
 		}catch(TypeTurnExistException e) {
 			System.out.println(e.getProblem());
 		}
@@ -198,7 +231,6 @@ public class Main {
 		int [] date = getDate();
 		LocalDate d = LocalDate.of(date[0], date[1], date[2]);
 		LocalTime t = LocalTime.of(date[3], date[4], date[5]);
-		
 		ts.editDate(d, t);
 	}
 	

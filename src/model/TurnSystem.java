@@ -4,9 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import customExceptions.TypeTurnExistException;
-import customExceptions.UserExistException;
-import customExceptions.UserNotRegisterException;
+import customExceptions.*;
 
 import java.time.*;
 
@@ -46,41 +44,62 @@ public class TurnSystem implements Serializable{
 	}
 	
 	public void setDifferences() {
-			Period period = Period.between(LocalDate.now(), date.getDate());
+			LocalDateTime now = LocalDateTime.now();
+			Period period = Period.between(LocalDate.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth()), date.getDate());
 			differences[0] = period.getYears();
 			differences[1] = period.getMonths();
 			differences[2] = period.getDays();
-			differences[3] = date.getTime().getHour() - LocalTime.now().getHour();
-			differences[4] = date.getTime().getMinute() - LocalTime.now().getMinute();
-			differences[5] = date.getTime().getSecond() - LocalTime.now().getSecond();
+			differences[3] = date.getTime().getHour() - now.getHour();
+			differences[4] = date.getTime().getMinute() - now.getMinute();
+			differences[5] = date.getTime().getSecond() -now.getSecond();
+			differences[5] += differences[4]*60 + differences[3]*60*60;
 	}
 	
 	public void upgradeTheTime() {
 		LocalDate dateNow = LocalDate.now();
 		LocalTime timeNow = LocalTime.now();
-		int newSecond = 0;
-		int newMinute = 0;
-		int newHour = 0;
+		int newSecond = timeNow.getSecond();
+		int newMinute = timeNow.getMinute();
+		int newHour = timeNow.getHour();
 		int newDay = 0;
 		int newMonth = 0;
 		int newYear = 0;
 		
-		newSecond = timeNow.getSecond() + differences[5];
-		if(newSecond >= 60) {
-			newSecond = newSecond - 60;
-			newMinute++;
-		}
-		
-		newMinute += timeNow.getMinute() + differences[4];
-		if(newMinute >= 60) {
-			newMinute = newMinute - 60;
-			newHour++;
-		}
-		
-		newHour += timeNow.getHour() + differences[3];
-		if(newHour>=24) {
-			newHour = newHour - 24;
-			newDay ++;
+
+		if(differences[5]<0) {
+			int d = differences[5];
+			while(d!=0) {
+				newSecond --;
+				d++;
+				if(newSecond==-1) {
+					newMinute --;
+					newSecond=59;
+				}
+				if(newMinute==-1) {
+					newHour --;
+					newMinute = 59;
+				}if(newHour==-1) {
+					newHour = 23;
+					newDay--;
+				}
+			}
+		}else {
+			int d = differences[5];
+			while(d!=0) {
+				newSecond ++;
+				d--;
+				if(newSecond==60) {
+					newMinute ++;
+					newSecond=0;
+				}
+				if(newMinute==60) {
+					newHour ++;
+					newMinute = 0;
+				}if(newHour==24) {
+					newHour = 0;
+					newDay++;
+				}
+			}
 		}
 		
 		newMonth = dateNow.getMonthValue() +  differences[1];
@@ -133,7 +152,8 @@ public class TurnSystem implements Serializable{
 	public void addTypeTurn(float du, String ty) throws TypeTurnExistException {
 		TypeTurn t = searchTypeTurn(ty);
 		if(t==null) {
-			typesOfTurns.add(new TypeTurn(du, ty));	
+			typesOfTurns.add(new TypeTurn(du, ty));
+			Collections.sort(typesOfTurns);
 		}else {
 			throw new TypeTurnExistException(du, t.getDuration(), ty);
 		}
@@ -158,6 +178,20 @@ public class TurnSystem implements Serializable{
 		     }
 		   }
 		   return null;        
+	}
+	
+	public String showAllTypeTurns() {
+		int cont = 1;
+		String message = "";
+		if(!typesOfTurns.isEmpty()) {
+			for(int i = 0; i<typesOfTurns.size(); i++) {
+				message += + cont + ". " + typesOfTurns.get(i).getType() + ".\n";
+				cont++;
+			}
+			
+			return message;
+		}else
+			return null;
 	}
 	
 	/**
@@ -211,14 +245,15 @@ public class TurnSystem implements Serializable{
 	 * @param id Id del usuario al que se le asignará el turno. id != null.
 	 * @return un objeto Turno el cual será diferente de null si se le quiere asignar a un turno a un usuario que ya tiene un turno anteriormente, en este caso se le retornará el turno que posee.
 	 * @throws UserNotRegisterException Esta excepción se lanza cuando se le intenta asignar un turno a un usuario que no existe en el programa.
+	 * @throws ExistActiveTurnException 
 	 */
-	public Turn assignTurn(String id, TypeTurn t) throws UserNotRegisterException{
+	public void assignTurn(String id, TypeTurn t) throws UserNotRegisterException, ExistActiveTurnException{
 		if(searchPersonPosition(id)==-1) {
 			throw new UserNotRegisterException(id);
 		}
 		else {
 			if(existActiveTurn(id)!=-1)
-				return turns.get(existActiveTurn(id));
+				throw new ExistActiveTurnException(turns.get(existActiveTurn(id)));
 			else {
 				if(turns.size()>=1) {
 					char letter = turns.get(turns.size()-1).getLetter();
@@ -240,8 +275,6 @@ public class TurnSystem implements Serializable{
 						
 						turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
 						
-						return null;
-						
 					}else {
 						if(Integer.parseInt(position)<99 && Integer.parseInt(position)>=9) {
 							position = ""+(Integer.parseInt(position)+1);
@@ -249,7 +282,7 @@ public class TurnSystem implements Serializable{
 							
 							LocalDateTime date = assignDateAtTurn();
 							turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
-							return null;
+							
 						}
 						else {
 							if(Integer.parseInt(position)<9) {
@@ -258,10 +291,7 @@ public class TurnSystem implements Serializable{
 								LocalDateTime date = assignDateAtTurn();
 								
 								turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
-								return null;
-							}
-							else {
-								return null;
+								
 							}
 						}
 					}
@@ -269,7 +299,6 @@ public class TurnSystem implements Serializable{
 				else {
 					LocalDateTime date = this.date.getDateTime();
 					turns.add(new Turn('A', "00", users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
-					return null;
 				}
 			}
 		}
@@ -340,11 +369,6 @@ public class TurnSystem implements Serializable{
 		
 		return LocalDateTime.of(d, t);
 	}
-	
-	public Date getDate() {
-		return date;
-	}
-	
 	//Con comparator y comparable.
 	public void sortUsersByName() {
 		
@@ -363,6 +387,42 @@ public class TurnSystem implements Serializable{
 		
 		return position;
 	}
+
+	//--------------------------------------
 	
-	
+	public static String getDatebaseName() {
+		return DATEBASE_NAME;
+	}
+
+	public static String getDatebaseLastname() {
+		return DATEBASE_LASTNAME;
+	}
+
+	public Turn getActualTurn() {
+		return actualTurn;
+	}
+
+	public ArrayList<Turn> getTurns() {
+		return turns;
+	}
+
+	public ArrayList<TypeTurn> getTypesOfTurns() {
+		return typesOfTurns;
+	}
+
+	public ArrayList<User> getUsers() {
+		return users;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public int[] getDifferences() {
+		return differences;
+	}
+
+	public Alphabet[] getAlphabet() {
+		return alphabet;
+	}
 }

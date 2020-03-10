@@ -1,5 +1,6 @@
 package customExceptions;
 
+@SuppressWarnings("serial")
 public class TypeTurnExistException extends Exception{
 
 	private float duration1;

@@ -1,5 +1,6 @@
 package customExceptions;
 
+@SuppressWarnings("serial")
 public class UserExistException extends Exception{
 
 	public UserExistException(String id) {
