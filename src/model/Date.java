@@ -41,4 +41,8 @@ public class Date {
 		d = LocalDate.of(year, month, day);
 		dateTime = LocalDateTime.of(d, t);
 	}
+	
+	public String showAllDate() {
+		return dateTime.getDayOfMonth() + "/" + dateTime.getMonthValue() + "/" + dateTime.getYear() + " --- TIME| " + dateTime.getHour() + ":" + dateTime.getMinute() + ":" + dateTime.getSecond();
+	}
 }

@@ -1,6 +1,5 @@
 package model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -8,7 +7,7 @@ import customExceptions.*;
 
 import java.time.*;
 
-public class TurnSystem implements Serializable{
+public class TurnSystem{
 
 	public static final int WAIT_TIME = 15;
 	public static final String DATEBASE_NAME = "*";
@@ -194,6 +193,20 @@ public class TurnSystem implements Serializable{
 			return null;
 	}
 	
+	public String showAllActiveTurns() {
+		int cont = 1;
+		String message = "";
+		
+		for(int i = 0; i<turns.size(); i++) {
+			if(!turns.get(i).getUser().isAttended()) { 
+				message += + cont + ". " + turns.get(i).getLetter() + turns.get(i).getNumber() + " --- " + "User ID: " + turns.get(i).getUser().getId() + "/Type: " + turns.get(i).getType().getType() + " --- Duration: " + turns.get(i).getType().getDuration() + "///DATE: " + turns.get(i).getDate().showAllDate() + "\n";
+				cont++;
+			}
+		}
+		
+		return message;
+	}
+	
 	/**
 	 * Este metodo permite buscar a un usuario en su arrayList y retornar su posicion.
 	 * <b>pre:</b> El arrayList (users) debe de estar inicializado.<br>
@@ -234,6 +247,10 @@ public class TurnSystem implements Serializable{
 		else {
 			throw new UserExistException(id);
 		}
+	}
+	
+	public void attendTurns() {
+		
 	}
 	
 	/**
@@ -305,69 +322,97 @@ public class TurnSystem implements Serializable{
 	}
 	
 	public LocalDateTime assignDateAtTurn() {
-		LocalDate dateNow = turns.get(turns.size()-1).getDate().getDate();
-		LocalTime timeNow = turns.get(turns.size()-1).getDate().getTime();
-		int newSecond = 0;
-		int newMinute = 0;
-		int newHour = 0;
-		int newDay = 0;
-		int newMonth = 0;
-		int newYear = 0;
-		
-		newSecond = timeNow.getSecond() + WAIT_TIME;
-		if(newSecond >= 60) {
-			newSecond = newSecond - 60;
-			newMinute++;
-		}
-		
-		newMinute += timeNow.getMinute() + turns.get(turns.size()-1).getType().getDuration();
-		if(newMinute >= 60) {
-			newMinute = newMinute - 60;
-			newHour++;
-		}
-		
-		newHour += timeNow.getHour();
-		if(newHour>=24) {
-			newHour = newHour - 24;
-			newDay ++;
-		}
-		
-		newMonth = dateNow.getMonthValue();
-		if(newMonth>=13) {
-			newMonth = newMonth - 12;
-			newYear++;
-		}
-		
-		newDay += dateNow.getDayOfMonth();
-		if(newMonth == 11 || newMonth == 4 || newMonth == 6 || newMonth == 9) {
-			if(newDay>=31) {
-				newDay = newDay - 30;
-				newMonth++;
-			}
-		}else {
-			if(newMonth == 2) {
-				if(newDay>=29) {
-					newDay = newDay - 28;
-					newMonth++;
+		if(!turns.isEmpty()) {
+			LocalDate lastTurnD = turns.get(turns.size()-1).getDate().getDate();
+			LocalTime lastTurnT = turns.get(turns.size()-1).getDate().getTime();
+			LocalDate nD = LocalDate.now();
+			LocalTime nT = LocalTime.now();
+			
+			if(lastTurnD.getYear()==nD.getYear() && lastTurnD.getMonthValue()==nD.getMonthValue() && lastTurnD.getDayOfMonth()==nD.getDayOfMonth()) {
+				if(nT.isAfter(lastTurnT)) {
+					if()
+					LocalDateTime newDT = getTimeForTheNewTurn(nD, nT, WAIT_TIME);
+					return newDT;
+				}else {
+					String value = String.valueOf(turns.get(turns.size()-1).getType().getDuration());
+					int minute = Integer.parseInt(value.substring(0, value.indexOf('.')));
+					float second = Float.parseFloat(value.substring(value.indexOf('.')));
+					second = second*60;
+					LocalDateTime newDT = getTimeForTheNewTurn(lastTurnD, lastTurnT, (WAIT_TIME + second), minute );
+					return newDT;
 				}
 			}else {
-				if(newDay>=32) {
-					newDay = newDay - 31;
-					newMonth++;
+				if(nD.isAfter(lastTurnD)) {
+					LocalDateTime newDT = getTimeForTheNewTurn(nD, nT);
+					return newDT;
+				}else {
+					LocalDateTime newDT = getTimeForTheNewTurn(lastTurnD, lastTurnT);
+					return newDT;
+				}
+			}
+		}else {
+			return LocalDateTime.of( LocalDate.now(), LocalTime.now());
+		}
+	}
+	
+	public LocalDateTime getTimeForTheNewTurn(LocalDate nowD, LocalTime nowT, float waitS, int waitM) {
+		float second = 0;
+		int minute = 0;
+		int hour = 0;
+		int day = 0;
+		int month = 0;
+		int year = 0;
+		
+		second = nowT.getSecond() + waitS;
+		
+		while(second>=60) {
+			second = second - 60;
+			minute ++;
+		}
+		
+		minute = minute + nowT.getMinute() + waitM;
+		while(minute>=60) {
+			minute = minute - 60;
+			hour++;
+		}
+		
+		hour += nowT.getHour();
+		while(hour>=24) {
+			hour = hour - 24;
+			day++;
+		}
+		
+		
+		month = nowD.getMonthValue();
+
+		day += nowD.getDayOfMonth();
+		if(month == 11 || month == 4 || month == 6 || month == 9) {
+			if(day>=31) {
+				day = day - 30;
+				month++;
+			}
+		}else {
+			if(month == 2) {
+				if(day>=29) {
+					day = day - 28;
+					month++;
+				}
+			}else {
+				if(day>=32) {
+					day = day - 31;
+					month++;
 				}
 			}
 		}
-		if(newMonth>=13) {
-			newMonth = newMonth - 12;
-			newYear++;
+		
+		if(month>=13) {
+			month = month - 12;
+			year++;
 		}
 		
-		newYear += dateNow.getYear();
+		year += nowD.getYear();
 		
-		LocalDate d = LocalDate.of(newYear, newMonth, newDay);
-		LocalTime t = LocalTime.of(newHour, newMinute, newSecond);
-		
-		return LocalDateTime.of(d, t);
+		return LocalDateTime.of(LocalDate.of(year, month, day), LocalTime.of(hour, minute, second));
 	}
 	//Con comparator y comparable.
 	public void sortUsersByName() {

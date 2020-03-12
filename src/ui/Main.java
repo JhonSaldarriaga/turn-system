@@ -12,6 +12,8 @@ import customExceptions.UserNotRegisterException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.*;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 
 public class Main {
 
@@ -22,7 +24,7 @@ public class Main {
 	
 	public static void main(String [] args) throws InterruptedException{
 		Main main = new Main();
-		main.menu();
+		main.pruebas();
 	}
 	
 	public Main() {
@@ -32,6 +34,22 @@ public class Main {
 	}
 	
 	public void pruebas(){
+
+		LocalDateTime t1 = LocalDateTime.now();
+		t1 = LocalDateTime.of(t1.getYear(), t1.getMonthValue(), t1.getDayOfMonth(), t1.getHour(), t1.getMinute(), t1.getSecond(), 0);
+		LocalDateTime t2 = LocalDateTime.of(2040, 3, 13, 19, 4, 50);
+		//System.out.println(t1);
+		//t1 = t1.plus(999999999, ChronoUnit.SECONDS);
+		//System.out.println(t1);
+		Duration d = Duration.between(t1, t2);
+		long seconds = d.getSeconds();
+		long minutes = seconds/60;
+		
+		//t1 = t1.plus(seconds, ChronoUnit.SECONDS);
+		t1 = t1.plus(minutes, ChronoUnit.MINUTES); //inexacto
+		
+		System.out.println(t1);
+		System.out.println(t2);
 
 	}
 	
@@ -45,7 +63,7 @@ public class Main {
 		System.out.println("-----------------------");
 		while(!finish) {
 			System.out.println(ts.showDateTime()+"\n");
-			System.out.println("1. Add user.\n2. Create new typeTurn.\n3. Assign turn.\n4. Attend all the turns until the actuality.\n5. Change actual date and time.\n6. Generate a report with all the turns that a user has requested.\n7. Generate a report with all the people who have come to have a specific turn.\n8. Generate random users.\n9. Generate random turns");
+			System.out.println("1. Add user.\n2. Create new typeTurn.\n3. Assign turn.\n4. Show all Active turn.\n5. Attend all the turns until the actuality.\n6. Change actual date and time.\n7. Generate a report with all the turns that a user has requested.\n8. Generate a report with all the people who have come to have a specific turn.\n9. Generate random users.\n10. Generate random turns");
 			continueOption = true;
 			do {
 				try{
@@ -64,17 +82,19 @@ public class Main {
 				break;
 			case 3: assignTurn();
 				break;
-			case 4: 
+			case 4: System.out.println(ts.showAllActiveTurns());
 				break;
-			case 5: editDate();
+			case 5: 
 				break;
-			case 6:
+			case 6: editDate();
 				break;
 			case 7:
 				break;
 			case 8:
 				break;
 			case 9:
+				break;
+			case 10:
 				break;
 			default: System.out.println("Invalid option");
 				break;
