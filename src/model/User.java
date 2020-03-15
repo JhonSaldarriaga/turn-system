@@ -3,6 +3,7 @@ package model;
 import java.io.Serializable;
 import java.util.*;
 
+@SuppressWarnings("serial")
 public class User implements Serializable{
 
 	private String id;

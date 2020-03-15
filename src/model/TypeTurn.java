@@ -2,6 +2,7 @@ package model;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 public class TypeTurn implements Comparable<TypeTurn>, Serializable{
 
 	private float duration;

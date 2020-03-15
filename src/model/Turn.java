@@ -2,6 +2,7 @@ package model;
 import java.io.Serializable;
 import java.time.*;
 
+@SuppressWarnings("serial")
 public class Turn implements Comparable<Turn>, Serializable{
 
 	private char letter;

@@ -18,7 +18,6 @@ public class Main {
 	public static void main(String [] args) throws ClassNotFoundException{
 		Main main = new Main();
 		main.menu();
-		//main.pruebas();
 	}
 	
 	public Main() throws ClassNotFoundException {
@@ -26,13 +25,6 @@ public class Main {
 		load();
 		if(firstTime) {
 			chooseBeggin();	
-		}
-	}
-	
-	public void pruebas() throws IOException{
-		for(int i = 0; i<100; i++) {
-			int random = (int) (Math.random()*(100-1));	
-			System.out.println(random);
 		}
 	}
 	
@@ -67,20 +59,30 @@ public class Main {
 			case 4: if(ts.showAllActiveTurns().equals("")){
 						System.out.println("Theres not exist turns yet.");
 					}else {
+						long init = System.currentTimeMillis();
 						System.out.println(ts.showAllActiveTurns());
+						long last = System.currentTimeMillis();
+						System.out.println("MILLIS: "+ (last-init));
 					}
 				break;
-				case 5:if(ts.showAllUsers().equals("")) {
+			case 5:if(ts.showAllUsers().equals("")) {
 							System.out.println("Users not exist yet");
-						}else {
-							ts.sortUsersByName();
-							System.out.println(ts.showAllUsers());
-						}
+					}else {
+						long init = System.currentTimeMillis();
+						ts.sortUsersByName();
+						System.out.println(ts.showAllUsers());
+						long last = System.currentTimeMillis();
+						System.out.println("MILLIS: "+ (last-init));
+					}
 				break;
 			case 6: if(ts.attendTurns()==null) 
 						System.out.println("Theres not exist turns yet.");
-					else
+					else {
+						long init = System.currentTimeMillis();
 						System.out.println(ts.attendTurns());
+						long last = System.currentTimeMillis();
+						System.out.println("MILLIS: "+ (last-init));
+					}
 				break;
 			case 7: editDate();
 				break;
@@ -142,6 +144,8 @@ public class Main {
 	}
 	
 	public void generateReportUsers() {
+		long init = System.currentTimeMillis();
+		
 		System.out.println("Do you want generate document report or show in the screen?");
 		int option = 0;
 		boolean continueOption = true;
@@ -172,9 +176,14 @@ public class Main {
 				System.out.println(e.getMessage());
 			}
 		}
+		
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
 	public void generateReportTurns() {
+		long init = System.currentTimeMillis();
+		
 		System.out.println("Do you want generate document report or show in the screen?");
 		int option = 0;
 		boolean continueOption = true;
@@ -206,9 +215,13 @@ public class Main {
 			}else
 				System.out.println("User not exist");
 		}
+		
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
 	public void generateTurns() {
+		long init = System.currentTimeMillis();
 		
 		System.out.println("for how many days do you want to generate new turns?");
 		int option = 0;
@@ -234,14 +247,13 @@ public class Main {
 			} catch (IsSuspendedException e) {
 				e.printStackTrace();
 			}
+			
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
-	/**
-	 * Este metodo es una de las opciones del menu de TurnManager, permite añadir un usuario al programa TurnManager(tm).
-	 * <b>pre:</b> El TurnManager(tm) debe de estar inicializado.<br>
-	 * <b>pos:</b> Se ha añadido un nuevo usuario al programa TurnManager(tm).<br>
-	 */
 	public void addUser() {
+		long init = System.currentTimeMillis();
 		System.out.println("Type name");
 		String name = scan.nextLine();
 		System.out.println("Type lastname");
@@ -312,14 +324,14 @@ public class Main {
 		}catch (MandatoryParameterNotTypeException e) {
 			System.out.println(e.getMessage()+"\n"+e.getProblem());
 		}
+		
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
-	/**
-	 * Este metodo es una de las opciones del menu de TurnManager, permite asignar un turno a un usuario de TurnManager(tm).
-	 * <b>pre:</b> El TurnManager(tm) debe de estar inicializado.<br>
-	 * <b>pos:</b> Se ha asignado un turno a un usuario existente en el programa TurnManager(tm).<br>
-	 */
 	public void assignTurn() {
+		long init = System.currentTimeMillis();
+		
 		if(ts.showAllTypeTurns()!=null) {
 			System.out.println("Type the number id of the person you want to register");
 			String id = scan.nextLine();
@@ -354,9 +366,13 @@ public class Main {
 		}else {
 			System.out.println("The types of the turns do not exist yet. Please, create the types of turns");
 		}
+		
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
 	public void createTypeTurn() {
+		long init = System.currentTimeMillis();
 		System.out.println("Type the name of the type");
 		String type = scan.nextLine();
 		System.out.println("Type the duration of the type turn");
@@ -378,16 +394,25 @@ public class Main {
 		}catch(TypeTurnExistException e) {
 			System.out.println(e.getProblem());
 		}
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
 	public void editDate() {
+		long init = System.currentTimeMillis();
+		
 		int [] date = getDate();
 		LocalDate d = LocalDate.of(date[0], date[1], date[2]);
 		LocalTime t = LocalTime.of(date[3], date[4], date[5]);
 		ts.editDate(d, t);
+		
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
 	public void generateRandomPeople() {
+		long init = System.currentTimeMillis();
+		
 		System.out.println("How many people do you want to generate?");
 		boolean continueOption = true;
 		int option = 0;
@@ -407,6 +432,9 @@ public class Main {
 		
 		ts.generateRandomUsers(option);
 		System.out.println("Successful");
+		
+		long last = System.currentTimeMillis();
+		System.out.println("MILLIS: "+ (last-init));
 	}
 	
 	/**

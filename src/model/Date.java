@@ -3,12 +3,11 @@ package model;
 import java.io.Serializable;
 import java.time.*;
 
+@SuppressWarnings("serial")
 public class Date implements Serializable{
 
 	private LocalDateTime dateTime;
-	//private LocalDate d;
-	//private LocalTime t;
-	
+
 	public Date(int hour, int minute, int second, int day, int month, int year) {
 		dateTime = LocalDateTime.of(LocalDate.of(year, month, day), LocalTime.of(hour, minute, second));
 	}
@@ -36,24 +35,6 @@ public class Date implements Serializable{
 	public void setLocalDateTime(LocalDateTime dateTime) {
 		this.dateTime = dateTime;
 	}
-	
-	//public LocalDate getDate() {
-		//return d;
-	//}
-	
-	//public LocalTime getTime() {
-		//return t;
-	//}
-	
-	//public void changeTime(int hour, int minute, int second) {
-		//t = LocalTime.of(hour, minute, second);
-		//dateTime = LocalDateTime.of(d, t);
-	//}
-	
-	//public void changeDate(int day, int month, int year) {
-		//d = LocalDate.of(year, month, day);
-		//dateTime = LocalDateTime.of(d, t);
-	//}
 	
 	public void changeDateTime(LocalDateTime dt) {
 		dateTime = dt;

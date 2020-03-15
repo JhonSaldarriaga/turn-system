@@ -12,11 +12,10 @@ import java.io.*;
 public class TurnSystem implements Serializable{
 
 	public static final int WAIT_TIME = 15;
-	public static final String DATABASE_NAME = "data/USER_DATA.csv";//first_name,last_name,number,Country
+	public static final String DATABASE_NAME = "data/USER_DATA.csv";//firstName,lastName,number,Country
 	public static final String REPORTTURNS = "data/TURNS_REPORT";
 	public static final String REPORTUSERS = "data/USERS_REPORT";
 	
-	private Turn actualTurn;
 	private ArrayList<Turn> turns;
 	private ArrayList<TypeTurn> typesOfTurns;
 	private ArrayList<User> users;
@@ -31,7 +30,6 @@ public class TurnSystem implements Serializable{
 		alphabet = Alphabet.values();
 		typeId = TypeId.values();
 		date = new Date(LocalDate.now(), LocalTime.now());
-		actualTurn = new Turn('A', "00", null, null, LocalDateTime.now());
 		turns = new ArrayList<Turn>();
 		typesOfTurns = new ArrayList<TypeTurn>();
 		users = new ArrayList<User>();
@@ -44,7 +42,6 @@ public class TurnSystem implements Serializable{
 		alphabet = Alphabet.values();
 		typeId = TypeId.values();
 		date = new Date(d, t);
-		actualTurn = new Turn('A', "00", null, null, LocalDateTime.of(d, t));
 		turns = new ArrayList<Turn>();
 		typesOfTurns = new ArrayList<TypeTurn>();
 		users = new ArrayList<User>();
@@ -54,6 +51,10 @@ public class TurnSystem implements Serializable{
 		readUsers();
 	}
 	
+	/**
+	 * Este método genera la diferencia entre la hora actual del computador, y la hora actual de TurnSystem.
+	 *<b>pos:</b> El atributo secondDifferences se ha actualizado.<br>
+	 */
 	private void setDifferences() {
 		LocalDateTime now = LocalDateTime.now();
 		now = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond(), 0);
@@ -63,6 +64,11 @@ public class TurnSystem implements Serializable{
 		secondDifference = duration.getSeconds();
 	}
 	
+	/**
+	 * Este método actualiza la hora actual del sistema, "la refresca".
+	 * <b>pre:</b> La relacion date debe de estar inicializada.<br>
+	 * <b>pos:</b> La relacion date ha sido actualizada.<br>
+	 */
 	public void upgradeTheTime() {
 		LocalDateTime now = LocalDateTime.now();
 		now = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond(), 0);
@@ -71,16 +77,35 @@ public class TurnSystem implements Serializable{
 		date.setLocalDateTime(now);
 	}
 	
+	/**
+	 * Este método edita la hora actual del sistema.
+	 * <b>pre:</b> La relacion date debe de estar inicializada.<br>
+	 * <b>pos:</b> La relacion date ha sido actualizada.<br>
+	 * @param d Objeto del tipo LocalDate.
+	 * @param t Objeto del tipo LocalTime.
+	 */
 	public void editDate(LocalDate d, LocalTime t) {
 		date.setLocalDateTime(d, t);
 		setDifferences();
 	}
 	
+	/**
+	 * Este método permite mostrar la hora y fecha actual del programa con un formato especifico.
+	 * @return Un string con la fecha y hora.
+	 */
 	public String showDateTime() {
 		LocalDateTime showDate = date.getDateTime();
 		return showDate.getDayOfMonth() + "/" + showDate.getMonthValue() + "/" + showDate.getYear() + " --- " + showDate.getHour() + ":" + showDate.getMinute() + ":" + showDate.getSecond();
 	}
 	
+	/**
+	 * Este método añade un nuevo tipo de turno al arrayList TypeTurn.
+	 * <b>pre:</b> El arrayList TypeTurn debe de estar inicializado.<br>
+	 * <b>pos:</b> Se ha añadido un nuevo elemento al arrayList de turn.<br>
+	 * @param du float con la duracion en minutos del tipo de turno.
+	 * @param ty String con el nombre del tipo de turno.
+	 * @throws TypeTurnExistException
+	 */
 	public void addTypeTurn(float du, String ty) throws TypeTurnExistException {
 		TypeTurn t = searchTypeTurn(ty);
 		if(t==null) {
@@ -90,6 +115,7 @@ public class TurnSystem implements Serializable{
 			throw new TypeTurnExistException(du, t.getDuration(), ty);
 		}
 	}
+
 	
 	public TypeTurn searchTypeTurn(String ty) {
 		Collections.sort(typesOfTurns);
@@ -151,7 +177,7 @@ public class TurnSystem implements Serializable{
 	/**
 	 * Este metodo permite buscar a un usuario en su arrayList y retornar su posicion.
 	 * <b>pre:</b> El arrayList (users) debe de estar inicializado.<br>
-	 * @param id Número de cédula del usuario a buscar. id != null.
+	 * @param id Número de identificación del usuario a buscar. id != null.
 	 * @return Retorna la posicion en donde se encuentra el usuario en el ArrayList, si no lo encontró, retornará -1.
 	 */
 	public int searchPersonPosition(String id) {
@@ -541,11 +567,6 @@ public class TurnSystem implements Serializable{
 	}
 	
 	//--------------------------------------
-	
-	public Turn getActualTurn() {
-		return actualTurn;
-	}
-
 	public ArrayList<Turn> getTurns() {
 		return turns;
 	}
