@@ -1,16 +1,18 @@
 package ui;
 
 import model.*;
+
 import java.util.*;
 
+import customExceptions.ArrayListEmptyException;
 import customExceptions.ExistActiveTurnException;
+import customExceptions.IsSuspendedException;
 import customExceptions.MandatoryParameterNotTypeException;
 import customExceptions.TypeTurnExistException;
 import customExceptions.UserExistException;
 import customExceptions.UserNotRegisterException;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.time.*;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
@@ -22,9 +24,10 @@ public class Main {
 	private boolean firstTime;
 	private TypeId typeId;
 	
-	public static void main(String [] args) throws InterruptedException{
+	public static void main(String [] args) throws InterruptedException, IOException{
 		Main main = new Main();
-		main.pruebas();
+		main.menu();
+		//main.pruebas();
 	}
 	
 	public Main() {
@@ -33,24 +36,11 @@ public class Main {
 		chooseBeggin();
 	}
 	
-	public void pruebas(){
-
-		LocalDateTime t1 = LocalDateTime.now();
-		t1 = LocalDateTime.of(t1.getYear(), t1.getMonthValue(), t1.getDayOfMonth(), t1.getHour(), t1.getMinute(), t1.getSecond(), 0);
-		LocalDateTime t2 = LocalDateTime.of(2040, 3, 13, 19, 4, 50);
-		//System.out.println(t1);
-		//t1 = t1.plus(999999999, ChronoUnit.SECONDS);
-		//System.out.println(t1);
-		Duration d = Duration.between(t1, t2);
-		long seconds = d.getSeconds();
-		long minutes = seconds/60;
-		
-		//t1 = t1.plus(seconds, ChronoUnit.SECONDS);
-		t1 = t1.plus(minutes, ChronoUnit.MINUTES); //inexacto
-		
-		System.out.println(t1);
-		System.out.println(t2);
-
+	public void pruebas() throws IOException{
+		for(int i = 0; i<100; i++) {
+			int random = (int) (Math.random()*(100-1));	
+			System.out.println(random);
+		}
 	}
 	
 	public void menu() {
@@ -63,7 +53,7 @@ public class Main {
 		System.out.println("-----------------------");
 		while(!finish) {
 			System.out.println(ts.showDateTime()+"\n");
-			System.out.println("1. Add user.\n2. Create new typeTurn.\n3. Assign turn.\n4. Show all Active turn.\n5. Attend all the turns until the actuality.\n6. Change actual date and time.\n7. Generate a report with all the turns that a user has requested.\n8. Generate a report with all the people who have come to have a specific turn.\n9. Generate random users.\n10. Generate random turns");
+			System.out.println("1. Add user.\n2. Create new typeTurn.\n3. Assign turn.\n4. Show all Active turn.\n5. Show all register users.\n6. Attend all the turns until the actuality.\n7. Change actual date and time.\n8. Generate a report with all the turns that a user has requested.\n9. Generate a report with all the people who have come to have a specific turn.\n10. Generate random users.\n11. Generate turns until a day specify for the user.\n12. Exit.");
 			continueOption = true;
 			do {
 				try{
@@ -82,19 +72,36 @@ public class Main {
 				break;
 			case 3: assignTurn();
 				break;
-			case 4: System.out.println(ts.showAllActiveTurns());
+			case 4: if(ts.showAllActiveTurns().equals("")){
+						System.out.println("Theres not exist turns yet.");
+					}else {
+						System.out.println(ts.showAllActiveTurns());
+					}
 				break;
-			case 5: 
+				case 5:if(ts.showAllUsers().equals("")) {
+							System.out.println("Users not exist yet");
+						}else {
+							ts.sortUsersByName();
+							System.out.println(ts.showAllUsers());
+						}
 				break;
-			case 6: editDate();
+			case 6: if(ts.attendTurns()==null) 
+						System.out.println("Theres not exist turns yet.");
+					else
+						System.out.println(ts.attendTurns());
 				break;
-			case 7:
+			case 7: editDate();
 				break;
-			case 8:
+			case 8: generateReportTurns();
 				break;
-			case 9:
+			case 9: generateReportUsers();
 				break;
-			case 10:
+			case 10:generateRandomPeople();
+				break;
+			case 11: generateTurns();
+				break;
+			case 12:System.out.println("Bye.");
+					finish = true;
 				break;
 			default: System.out.println("Invalid option");
 				break;
@@ -103,6 +110,101 @@ public class Main {
 			System.out.println("-----------------------");
 			ts.upgradeTheTime();
 		}
+	}
+	
+	public void generateReportUsers() {
+		System.out.println("Do you want generate document report or show in the screen?");
+		int option = 0;
+		boolean continueOption = true;
+		do {
+			try{
+				System.out.println("1. GENERATE DOCUMENT.\n2. SHOW.");
+				option = Integer.parseInt(scan.nextLine());
+				continueOption = false;
+			} catch(NumberFormatException e) {
+				System.out.println("ERROR: the option must be int, try again");
+				continueOption = true;
+			}
+		} while(continueOption);
+		
+		System.out.println("Type letter");
+		char letter = scan.nextLine().charAt(0);
+		String number = scan.nextLine();
+		if(option == 1) {
+			try {
+				ts.generateReportUsersText(letter, number);
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
+		}else {
+			try {
+				System.out.println(ts.generateReportUsersShow(letter, number));
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
+		}
+	}
+	
+	public void generateReportTurns() {
+		System.out.println("Do you want generate document report or show in the screen?");
+		int option = 0;
+		boolean continueOption = true;
+		do {
+			try{
+				System.out.println("1. GENERATE DOCUMENT.\n2. SHOW.");
+				option = Integer.parseInt(scan.nextLine());
+				continueOption = false;
+			} catch(NumberFormatException e) {
+				System.out.println("ERROR: the option must be int, try again");
+				continueOption = true;
+			}
+		} while(continueOption);
+		
+		System.out.println("Type the id");
+		String id = scan.nextLine();
+		if(option == 1) {
+			if(ts.searchPersonPosition(id)!=-1) {
+				try {
+					ts.generateReportTurnText(id);
+				} catch (IOException e) {
+					System.out.println(e.getMessage());
+				}
+			}else
+				System.out.println("User not exist");
+		}else {
+			if(ts.searchPersonPosition(id)!=-1) {
+				System.out.println(ts.generateReportTurnShow(id));
+			}else
+				System.out.println("User not exist");
+		}
+	}
+	
+	public void generateTurns() {
+		
+		System.out.println("for how many days do you want to generate new turns?");
+		int option = 0;
+		boolean continueOption = true;
+		do {
+			try{
+				option = Integer.parseInt(scan.nextLine());
+				continueOption = false;
+			} catch(NumberFormatException e) {
+				System.out.println("ERROR: the option must be int, try again");
+				continueOption = true;
+			}
+		} while(continueOption);
+		
+			try {
+				System.out.println(ts.generateTurnsUntilADay(option));
+			} catch (ArrayListEmptyException e) {
+				System.out.println("ERROR" + e.getProblem());
+			} catch (UserNotRegisterException e) {
+				e.printStackTrace();
+			} catch (ExistActiveTurnException e) {
+				e.printStackTrace();
+			} catch (IsSuspendedException e) {
+				e.printStackTrace();
+			}
 	}
 	
 	/**
@@ -217,6 +319,8 @@ public class Main {
 				System.out.println(e.getMessage());
 			} catch (ExistActiveTurnException e) {
 				System.out.println("The turn already exist:\n" + "Turn: " + e.getTurn() + " --- " + e.getType());
+			}catch (IsSuspendedException e) {
+				System.out.println(e.getMessage());
 			}
 		}else {
 			System.out.println("The types of the turns do not exist yet. Please, create the types of turns");
@@ -254,6 +358,28 @@ public class Main {
 		ts.editDate(d, t);
 	}
 	
+	public void generateRandomPeople() {
+		System.out.println("How many people do you want to generate?");
+		boolean continueOption = true;
+		int option = 0;
+		do {
+			try{
+				option = Integer.parseInt(scan.nextLine());
+				if((""+option).length()>9) {
+					System.out.println("Invalid option, MAX number is 100000");
+				}else {
+					continueOption = false;
+				}
+			} catch(NumberFormatException e) {
+				System.out.println("ERROR: the option must be int, try again");
+				continueOption = true;
+			}
+		} while(continueOption);
+		
+		ts.generateRandomUsers(option);
+		System.out.println("Successful");
+	}
+	
 	/**
 	 * Este método solo se ejecuta en el constructor del Main. Permite escojer al usuario entre inicializar TurnSystem(ts) con la fecha actual del sistema, o con una establecida por el usuario.
 	 */
@@ -276,12 +402,20 @@ public class Main {
 		} while(continueOption);
 		
 		switch(option) {
-		case 1: ts = new TurnSystem();
+		case 1: try {
+				ts = new TurnSystem();
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
 		break;
 		case 2: int [] date = getDate();
 				LocalDate d = LocalDate.of(date[0], date[1], date[2]);
 				LocalTime t = LocalTime.of(date[3], date[4], date[5]);
+			try {
 				ts = new TurnSystem(d, t);
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
 		break;
 		}
 	}

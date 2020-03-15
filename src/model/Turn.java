@@ -10,11 +10,11 @@ public class Turn implements Comparable<Turn>{
 	private TypeTurn type;
 	private Date date;
 	
-	public Turn(char le, String num, User us, TypeTurn ty, LocalDate d, LocalTime t) {
+	public Turn(char le, String num, User us, TypeTurn ty, LocalDateTime dt) {
 		letter = le;
 		number = num;
 		user = us;
-		date = new Date(d, t);
+		date = new Date(dt);
 		type = ty;
 	}
 
@@ -41,7 +41,11 @@ public class Turn implements Comparable<Turn>{
 	public Date getDate() {
 		return date;
 	}
-
+	
+	public String toString() {
+		return letter + number + " --- " + "Type: " + type.getType() + "// Date: " + date.showAllDate();
+	}
+	
 	@Override
 	public int compareTo(Turn t) {
 		LocalDateTime d = date.getDateTime();

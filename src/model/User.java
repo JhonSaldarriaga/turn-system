@@ -11,7 +11,8 @@ public class User {
 	private String address;
 	private String cell;
 	private boolean attended;
-	private boolean suspended;
+	private Date suspended;
+	private int Strike;
 	
 	private ArrayList<Turn> turnsObtained;
 	
@@ -23,8 +24,21 @@ public class User {
 		this.address = address;
 		this.cell = cell;
 		attended = false;
-		suspended = false;
+		suspended = null;
 		turnsObtained = new ArrayList<Turn>();
+		Strike = 0;
+	}
+
+	public void addTurn(Turn t) {
+		turnsObtained.add(t);
+	}
+	
+	public int getStrike() {
+		return Strike;
+	}
+
+	public void setStrike(int strike) {
+		Strike = strike;
 	}
 
 	public boolean isAttended() {
@@ -35,11 +49,11 @@ public class User {
 		this.attended = attended;
 	}
 
-	public boolean isSuspended() {
+	public Date getSuspended() {
 		return suspended;
 	}
 
-	public void setSuspended(boolean suspended) {
+	public void setSuspended(Date suspended) {
 		this.suspended = suspended;
 	}
 
@@ -69,5 +83,9 @@ public class User {
 
 	public ArrayList<Turn> getTurnsObtained() {
 		return turnsObtained;
+	}
+	
+	public String toString() {
+		return "ID: " + id + "// NAME: " + name + " - LASTNAME: " + lastName;
 	}
 }

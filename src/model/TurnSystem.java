@@ -6,140 +6,72 @@ import java.util.Collections;
 import customExceptions.*;
 
 import java.time.*;
-
+import java.time.temporal.ChronoUnit;
+import java.io.*;
 public class TurnSystem{
 
 	public static final int WAIT_TIME = 15;
-	public static final String DATEBASE_NAME = "*";
-	public static final String DATEBASE_LASTNAME = "*";
+	public static final String DATABASE_NAME = "data/USER_DATA.csv";//first_name,last_name,number,Country
+	public static final String REPORTTURNS = "data/TURNS_REPORT";
+	public static final String REPORTUSERS = "data/USERS_REPORT";
 	
 	private Turn actualTurn;
 	private ArrayList<Turn> turns;
 	private ArrayList<TypeTurn> typesOfTurns;
 	private ArrayList<User> users;
+	private ArrayList<String> randomsUsersData;
 	private Date date;
-	private int[] differences;//year, month, day, hour, minutes, second.
+	private long secondDifference;
 	private Alphabet[] alphabet;
+	private TypeId[] typeId;
+	private long generateId;
 	
-	public TurnSystem() {
+	public TurnSystem() throws IOException {
 		alphabet = Alphabet.values();
+		typeId = TypeId.values();
 		date = new Date(LocalDate.now(), LocalTime.now());
-		actualTurn = new Turn('A', "00", null, null, LocalDate.now(), LocalTime.now());
+		actualTurn = new Turn('A', "00", null, null, LocalDateTime.now());
 		turns = new ArrayList<Turn>();
 		typesOfTurns = new ArrayList<TypeTurn>();
 		users = new ArrayList<User>();
-		differences = new int[6];
+		randomsUsersData = new ArrayList<String>();
+		generateId = 0;
+		readUsers();
 	}
 	
-	public TurnSystem(LocalDate d, LocalTime t) {
+	public TurnSystem(LocalDate d, LocalTime t) throws IOException {
 		alphabet = Alphabet.values();
+		typeId = TypeId.values();
 		date = new Date(d, t);
-		actualTurn = new Turn('A', "00", null, null, d, t);
+		actualTurn = new Turn('A', "00", null, null, LocalDateTime.of(d, t));
 		turns = new ArrayList<Turn>();
 		typesOfTurns = new ArrayList<TypeTurn>();
 		users = new ArrayList<User>();
-		differences = new int[6];
 		setDifferences();
+		randomsUsersData = new ArrayList<String>();
+		generateId = 0;
+		readUsers();
 	}
 	
-	public void setDifferences() {
-			LocalDateTime now = LocalDateTime.now();
-			Period period = Period.between(LocalDate.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth()), date.getDate());
-			differences[0] = period.getYears();
-			differences[1] = period.getMonths();
-			differences[2] = period.getDays();
-			differences[3] = date.getTime().getHour() - now.getHour();
-			differences[4] = date.getTime().getMinute() - now.getMinute();
-			differences[5] = date.getTime().getSecond() -now.getSecond();
-			differences[5] += differences[4]*60 + differences[3]*60*60;
+	private void setDifferences() {
+		LocalDateTime now = LocalDateTime.now();
+		now = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond(), 0);
+		LocalDateTime system = date.getDateTime();
+		Duration duration = Duration.between(now, system);
+		
+		secondDifference = duration.getSeconds();
 	}
 	
 	public void upgradeTheTime() {
-		LocalDate dateNow = LocalDate.now();
-		LocalTime timeNow = LocalTime.now();
-		int newSecond = timeNow.getSecond();
-		int newMinute = timeNow.getMinute();
-		int newHour = timeNow.getHour();
-		int newDay = 0;
-		int newMonth = 0;
-		int newYear = 0;
+		LocalDateTime now = LocalDateTime.now();
+		now = LocalDateTime.of(now.getYear(), now.getMonthValue(), now.getDayOfMonth(), now.getHour(), now.getMinute(), now.getSecond(), 0);
+		now = now.plus(secondDifference, ChronoUnit.SECONDS);
 		
-
-		if(differences[5]<0) {
-			int d = differences[5];
-			while(d!=0) {
-				newSecond --;
-				d++;
-				if(newSecond==-1) {
-					newMinute --;
-					newSecond=59;
-				}
-				if(newMinute==-1) {
-					newHour --;
-					newMinute = 59;
-				}if(newHour==-1) {
-					newHour = 23;
-					newDay--;
-				}
-			}
-		}else {
-			int d = differences[5];
-			while(d!=0) {
-				newSecond ++;
-				d--;
-				if(newSecond==60) {
-					newMinute ++;
-					newSecond=0;
-				}
-				if(newMinute==60) {
-					newHour ++;
-					newMinute = 0;
-				}if(newHour==24) {
-					newHour = 0;
-					newDay++;
-				}
-			}
-		}
-		
-		newMonth = dateNow.getMonthValue() +  differences[1];
-		if(newMonth>=13) {
-			newMonth = newMonth - 12;
-			newYear++;
-		}
-		
-		newDay += dateNow.getDayOfMonth() + differences[2];
-		if(newMonth == 11 || newMonth == 4 || newMonth == 6 || newMonth == 9) {
-			if(newDay>=31) {
-				newDay = newDay - 30;
-				newMonth++;
-			}
-		}else {
-			if(newMonth == 2) {
-				if(newDay>=29) {
-					newDay = newDay - 28;
-					newMonth++;
-				}
-			}else {
-				if(newDay>=32) {
-					newDay = newDay - 31;
-					newMonth++;
-				}
-			}
-		}
-		if(newMonth>=13) {
-			newMonth = newMonth - 12;
-			newYear++;
-		}
-		
-		newYear += dateNow.getYear() + differences[0];
-		
-		date.changeTime(newHour, newMinute, newSecond);
-		date.changeDate(newDay, newMonth, newYear);
+		date.setLocalDateTime(now);
 	}
 	
 	public void editDate(LocalDate d, LocalTime t) {
-		date.changeDate(d.getDayOfMonth(), d.getMonthValue(), d.getYear());
-		date.changeTime(t.getHour(), t.getMinute(), t.getSecond());
+		date.setLocalDateTime(d, t);
 		setDifferences();
 	}
 	
@@ -179,6 +111,15 @@ public class TurnSystem{
 		   return null;        
 	}
 	
+	public String showAllUsers() {
+		String message = "";
+		for(int i = 0; i<users.size(); i++) {
+			message += users.get(i).toString() + "\n";
+		}
+		
+		return message;
+	}
+	
 	public String showAllTypeTurns() {
 		int cont = 1;
 		String message = "";
@@ -196,7 +137,6 @@ public class TurnSystem{
 	public String showAllActiveTurns() {
 		int cont = 1;
 		String message = "";
-		
 		for(int i = 0; i<turns.size(); i++) {
 			if(!turns.get(i).getUser().isAttended()) { 
 				message += + cont + ". " + turns.get(i).getLetter() + turns.get(i).getNumber() + " --- " + "User ID: " + turns.get(i).getUser().getId() + "/Type: " + turns.get(i).getType().getType() + " --- Duration: " + turns.get(i).getType().getDuration() + "///DATE: " + turns.get(i).getDate().showAllDate() + "\n";
@@ -249,8 +189,56 @@ public class TurnSystem{
 		}
 	}
 	
-	public void attendTurns() {
+	private boolean isSuspended(String id) {
+		int n = searchPersonPosition(id);
+		User user = users.get(n);
+		if(user.getSuspended()!=null) {
+			if(user.getSuspended().getDateTime().isBefore(date.getDateTime())) {
+				user.setSuspended(null);
+				user.setStrike(0);
+				return false;
+			}else
+				return true;
+		}else
+			return false;
+	}
+	
+	public String attendTurns() {
+		String message = "The turns attended was: ";
+		if(!turns.isEmpty()) {
+			LocalDateTime now = date.getDateTime();
+			Duration d = Duration.between(turns.get(0).getDate().getDateTime(), now);
+			int i = 0;
+			int randomNumber;
+			while(!d.isNegative() && i<turns.size()) {
+				turns.get(i).getUser().setAttended(true);
+				User userOfTurn = users.get(searchPersonPosition(turns.get(i).getUser().getId()));
+				randomNumber = (int)(Math.random()*2)+1;
+				if(randomNumber == 1) {
+					userOfTurn.setStrike(0);
+				}else {
+					if(randomNumber == 2) {
+						userOfTurn.setStrike(userOfTurn.getStrike() + 1);
+						if(userOfTurn.getStrike() == 2) {
+							Date dateSuspended = new Date(now.plusDays(2));
+							userOfTurn.setSuspended(dateSuspended);
+						}
+					}
+				}
+				
+				message += turns.get(i).getLetter() + turns.get(i).getNumber() +  " --- Was attended at: " + turns.get(i).getDate().showAllDate() + "\n";
+				
+				i++;
+				d = Duration.between(turns.get(i).getDate().getDateTime(), now);
+			}
+			if(i==0) {
+				message += "NEITHER";
+			}
+		}else {
+			message = null;
+		}
 		
+		return message;
 	}
 	
 	/**
@@ -263,160 +251,111 @@ public class TurnSystem{
 	 * @return un objeto Turno el cual será diferente de null si se le quiere asignar a un turno a un usuario que ya tiene un turno anteriormente, en este caso se le retornará el turno que posee.
 	 * @throws UserNotRegisterException Esta excepción se lanza cuando se le intenta asignar un turno a un usuario que no existe en el programa.
 	 * @throws ExistActiveTurnException 
+	 * @throws IsSuspendedException 
 	 */
-	public void assignTurn(String id, TypeTurn t) throws UserNotRegisterException, ExistActiveTurnException{
+	public void assignTurn(String id, TypeTurn t) throws UserNotRegisterException, ExistActiveTurnException, IsSuspendedException{
 		if(searchPersonPosition(id)==-1) {
 			throw new UserNotRegisterException(id);
 		}
 		else {
-			if(existActiveTurn(id)!=-1)
-				throw new ExistActiveTurnException(turns.get(existActiveTurn(id)));
-			else {
-				if(turns.size()>=1) {
-					char letter = turns.get(turns.size()-1).getLetter();
-					String position = turns.get(turns.size()-1).getNumber();
-					
-					if(Integer.parseInt(position)==99) {
-						position = "00";
-						if(letter!='Z') {
-							for(int i=0; i<alphabet.length; i++) {
-								if(alphabet[i].getLetter()==letter) {
-									letter=alphabet[i+1].getLetter();
-									break;
+			if(isSuspended(id)) {
+				throw new IsSuspendedException(users.get(searchPersonPosition(id)).getSuspended());
+			}else {
+				if(existActiveTurn(id)!=-1)
+					throw new ExistActiveTurnException(turns.get(existActiveTurn(id)));
+				else {
+					if(turns.size()>=1) {
+						char letter = turns.get(turns.size()-1).getLetter();
+						String position = turns.get(turns.size()-1).getNumber();
+						
+						if(Integer.parseInt(position)==99) {
+							position = "00";
+							if(letter!='Z') {
+								for(int i=0; i<alphabet.length; i++) {
+									if(alphabet[i].getLetter()==letter) {
+										letter=alphabet[i+1].getLetter();
+										break;
+									}
+								}
+							}else
+								letter='A';
+								
+							LocalDateTime d = getTimeForTheNewTurn();
+							Turn turn = new Turn(letter, position, users.get(searchPersonPosition(id)), t, d);
+							turns.add(turn);
+							users.get(searchPersonPosition(id)).addTurn(turn);
+							
+						}else {
+							if(Integer.parseInt(position)<99 && Integer.parseInt(position)>=9) {
+								position = ""+(Integer.parseInt(position)+1);
+								
+								
+								LocalDateTime d = getTimeForTheNewTurn();
+								Turn turn = new Turn(letter, position, users.get(searchPersonPosition(id)), t, d);
+								turns.add(turn);
+								users.get(searchPersonPosition(id)).addTurn(turn);
+								
+							}
+							else {
+								if(Integer.parseInt(position)<9) {
+									position = "0"+(Integer.parseInt(position)+1);
+									
+									LocalDateTime d = getTimeForTheNewTurn();
+									Turn turn = new Turn(letter, position, users.get(searchPersonPosition(id)), t, d);
+									turns.add(turn);
+									users.get(searchPersonPosition(id)).addTurn(turn);
+									
 								}
 							}
-						}else
-							letter='A';
-							
-						LocalDateTime date = assignDateAtTurn();
-						
-						turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
-						
+						}
 					}else {
-						if(Integer.parseInt(position)<99 && Integer.parseInt(position)>=9) {
-							position = ""+(Integer.parseInt(position)+1);
-							
-							
-							LocalDateTime date = assignDateAtTurn();
-							turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
-							
-						}
-						else {
-							if(Integer.parseInt(position)<9) {
-								position = "0"+(Integer.parseInt(position)+1);
-								
-								LocalDateTime date = assignDateAtTurn();
-								
-								turns.add(new Turn(letter, position, users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
-								
-							}
-						}
+						LocalDateTime d = date.getDateTime();
+						Turn turn = new Turn('A', "00", users.get(searchPersonPosition(id)), t, d);
+						turns.add(turn);
+						users.get(searchPersonPosition(id)).addTurn(turn);
 					}
 				}
-				else {
-					LocalDateTime date = this.date.getDateTime();
-					turns.add(new Turn('A', "00", users.get(searchPersonPosition(id)), t, LocalDate.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth()), LocalTime.of(date.getHour(), date.getMinute(), date.getSecond())));
-				}
 			}
 		}
 	}
 	
-	public LocalDateTime assignDateAtTurn() {
-		if(!turns.isEmpty()) {
-			LocalDate lastTurnD = turns.get(turns.size()-1).getDate().getDate();
-			LocalTime lastTurnT = turns.get(turns.size()-1).getDate().getTime();
-			LocalDate nD = LocalDate.now();
-			LocalTime nT = LocalTime.now();
-			
-			if(lastTurnD.getYear()==nD.getYear() && lastTurnD.getMonthValue()==nD.getMonthValue() && lastTurnD.getDayOfMonth()==nD.getDayOfMonth()) {
-				if(nT.isAfter(lastTurnT)) {
-					if()
-					LocalDateTime newDT = getTimeForTheNewTurn(nD, nT, WAIT_TIME);
-					return newDT;
-				}else {
-					String value = String.valueOf(turns.get(turns.size()-1).getType().getDuration());
-					int minute = Integer.parseInt(value.substring(0, value.indexOf('.')));
-					float second = Float.parseFloat(value.substring(value.indexOf('.')));
-					second = second*60;
-					LocalDateTime newDT = getTimeForTheNewTurn(lastTurnD, lastTurnT, (WAIT_TIME + second), minute );
-					return newDT;
-				}
-			}else {
-				if(nD.isAfter(lastTurnD)) {
-					LocalDateTime newDT = getTimeForTheNewTurn(nD, nT);
-					return newDT;
-				}else {
-					LocalDateTime newDT = getTimeForTheNewTurn(lastTurnD, lastTurnT);
-					return newDT;
-				}
-			}
+	public LocalDateTime getTimeForTheNewTurn() {
+		Turn lastTurn = turns.get(turns.size()-1);
+		LocalDateTime lastTurnLD = lastTurn.getDate().getDateTime();
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime newTurn = null;
+		
+		if(now.isBefore(lastTurnLD)) {
+			long seconds = (long) ((turns.get(turns.size()-1).getType().getDuration() * 60) + WAIT_TIME);
+			newTurn = lastTurnLD.plus(seconds, ChronoUnit.SECONDS);
 		}else {
-			return LocalDateTime.of( LocalDate.now(), LocalTime.now());
+			if(Duration.between(lastTurnLD, now).getSeconds()>((lastTurn.getType().getDuration()*60)+15)) {
+				newTurn = now.plus(WAIT_TIME, ChronoUnit.SECONDS);
+			}else {
+				long seconds = (long)((lastTurn.getType().getDuration() * 60) + WAIT_TIME);
+				newTurn = now.plus(seconds, ChronoUnit.SECONDS);
+			}
 		}
+		
+		return newTurn;
 	}
 	
-	public LocalDateTime getTimeForTheNewTurn(LocalDate nowD, LocalTime nowT, float waitS, int waitM) {
-		float second = 0;
-		int minute = 0;
-		int hour = 0;
-		int day = 0;
-		int month = 0;
-		int year = 0;
-		
-		second = nowT.getSecond() + waitS;
-		
-		while(second>=60) {
-			second = second - 60;
-			minute ++;
-		}
-		
-		minute = minute + nowT.getMinute() + waitM;
-		while(minute>=60) {
-			minute = minute - 60;
-			hour++;
-		}
-		
-		hour += nowT.getHour();
-		while(hour>=24) {
-			hour = hour - 24;
-			day++;
-		}
-		
-		
-		month = nowD.getMonthValue();
-
-		day += nowD.getDayOfMonth();
-		if(month == 11 || month == 4 || month == 6 || month == 9) {
-			if(day>=31) {
-				day = day - 30;
-				month++;
-			}
-		}else {
-			if(month == 2) {
-				if(day>=29) {
-					day = day - 28;
-					month++;
-				}
-			}else {
-				if(day>=32) {
-					day = day - 31;
-					month++;
-				}
-			}
-		}
-		
-		if(month>=13) {
-			month = month - 12;
-			year++;
-		}
-		
-		year += nowD.getYear();
-		
-		return LocalDateTime.of(LocalDate.of(year, month, day), LocalTime.of(hour, minute, second));
-	}
-	//Con comparator y comparable.
+	
 	public void sortUsersByName() {
 		
+		for(int i=0; i<users.size()-1; i++) {
+			User menor = users.get(i);
+			int cual = i;
+			for(int j=i+1; j<users.size();j++) {
+				if(users.get(j).getName().compareTo(menor.getName())<0) {
+					menor = users.get(j);
+					cual =  j;
+				}
+			}
+			User temp = users.get(i);
+			users.set(i, menor);
+			users.set(cual, temp);
+		}
 	}
 
 	public int existActiveTurn(String id) {
@@ -432,17 +371,176 @@ public class TurnSystem{
 		
 		return position;
 	}
+	
+	private void readUsers() throws IOException {
+		File file = new File(DATABASE_NAME);
+		if(file.exists()) {
+			FileReader fr = new FileReader(file);
+			BufferedReader br = new BufferedReader(fr);
+			boolean empty = false;
+			String line = "";
+			while(!empty) {
+				line = br.readLine();
+				if(line==null){
+					empty = true;
+				}else {
+					randomsUsersData.add(line);
+				}
+			}
+			
+			br.close();
+		}
+	}
+	
+	public String generateTurnsUntilADay(int n) throws ArrayListEmptyException, UserNotRegisterException, ExistActiveTurnException, IsSuspendedException {
+		LocalDateTime until = date.getDateTime().plusDays(n);
+		LocalDateTime lastTurnD;
+		if(!(typesOfTurns.isEmpty() || users.isEmpty())) {
+			if(turns.isEmpty()) {
+				lastTurnD = date.getDateTime();
+			}else
+				lastTurnD = turns.get(turns.size()-1).getDate().getDateTime();
 
+			if(lastTurnD.isBefore(until)) {
+				int cont = 0;
+				while(lastTurnD.isBefore(until) && cont!=users.size()) {
+					int randomNumUser = (int) (Math.random()*(users.size()-1));
+					String id = users.get(randomNumUser).getId();
+					if(!isSuspended(id) && existActiveTurn(id)==-1) {
+						int randomNumType = (int)(Math.random()*(typesOfTurns.size()-1));
+						assignTurn(id, typesOfTurns.get(randomNumType));
+					}else
+						cont ++;
+					
+					lastTurnD = turns.get(turns.size()-1).getDate().getDateTime();
+					
+				}
+				return "Successful.";
+			}else
+				return "Turns already exist for the next " + n + " days";
+		}else
+			throw new ArrayListEmptyException(users, typesOfTurns);
+	}
+	
+	public void generateRandomUsers(int n) {
+		while(n!=0) {
+			int randomNumber = (int) (Math.random()*(randomsUsersData.size()-1));
+			String line = randomsUsersData.get(randomNumber);
+			String[] lines = line.split(",");
+			int randomNumberType = (int) (Math.random()*(typeId.length-1));
+			User e = new User(getRandomId(), typeId[randomNumberType].getType(), lines[0], lines[1], lines[3], lines[2]);
+			users.add(e);
+			n--;
+		}
+	}
+	
+	public String getRandomId() {
+		String number = null;
+		boolean different = false;
+		while(!different) {
+			long id = generateId;
+			generateId += 1;
+			
+			number = ""+id;
+			
+			if((number).length()<10) {
+				while((number).length()<10) {
+					number+=0;
+				}
+			}
+			
+			if(searchPersonPosition(number)==-1) {
+				different = true;
+			}
+		}
+		
+		return number;
+	}
+	
+	public void generateReportTurnText(String id) throws IOException {
+		User user = users.get(searchPersonPosition(id));
+		
+		File file = new File(REPORTTURNS + "_" + user.getId()+".txt");
+		if(!file.exists()) {
+			file.createNewFile();
+		}
+		
+		PrintWriter pr = new PrintWriter(file);
+		pr.println("|ALL THE TURNS THAT A USER: " + user.getId() + " HAS REQUESTED|");
+		pr.println("=====================================================");
+		
+		ArrayList<Turn> turnsObtained = user.getTurnsObtained();
+		for(int i = 0; i < turnsObtained.size(); i++) {
+			pr.println(turnsObtained.get(i).toString());
+		}
+		
+		pr.close();
+	}
+	
+	public String generateReportTurnShow(String id) {
+		String message = "";
+		User user = users.get(searchPersonPosition(id));
+		message += "|ALL THE TURNS THAT A USER: " + user.getId() + " HAS REQUESTED|\n";
+		message += "=====================================================\n";
+		
+		ArrayList<Turn> turnsObtained = user.getTurnsObtained();
+		for(int i = 0; i < turnsObtained.size(); i++) {
+			message += turnsObtained.get(i).toString() +"\n";
+		}
+		
+		return message;
+	}
+	
+	public void generateReportUsersText(char letter, String number) throws IOException {
+
+		ArrayList<User> usersTurns = new ArrayList<User>();
+		
+		for(int i = 0; i<turns.size(); i++) {
+			if(turns.get(i).getLetter() == letter && turns.get(i).getNumber().equals(number)) {
+				usersTurns.add(turns.get(i).getUser());
+			}
+		}
+		
+		File file = new File(REPORTTURNS + "_" + letter + number +".txt");
+		if(!file.exists()) {
+			file.createNewFile();
+		}
+		
+		PrintWriter pr = new PrintWriter(file);
+		pr.println("|GENERATE A REPORT WITH ALL THE PEOPLE WHO HAVE COME TO HAVE A SPECIFIC TURN: "+letter+number+"|");
+		pr.println("===================================================================================");
+		
+		for(int i = 0; i < usersTurns.size(); i++) {
+			pr.println(usersTurns.get(i).toString());
+		}
+		
+		pr.close();
+	}
+	
+	public String generateReportUsersShow(char letter, String number) throws IOException {
+
+		ArrayList<User> usersTurns = new ArrayList<User>();
+		
+		String message = "";
+		
+		for(int i = 0; i<turns.size(); i++) {
+			if(turns.get(i).getLetter() == letter && turns.get(i).getNumber().equals(number)) {
+				usersTurns.add(turns.get(i).getUser());
+			}
+		}
+		
+		message += "|GENERATE A REPORT WITH ALL THE PEOPLE WHO HAVE COME TO HAVE A SPECIFIC TURN: "+letter+number+"|\n";
+		message += "===================================================================================\n";
+		
+		for(int i = 0; i < usersTurns.size(); i++) {
+			message += usersTurns.get(i).toString() + "\n";
+		}
+		
+		return message;
+	}
+	
 	//--------------------------------------
 	
-	public static String getDatebaseName() {
-		return DATEBASE_NAME;
-	}
-
-	public static String getDatebaseLastname() {
-		return DATEBASE_LASTNAME;
-	}
-
 	public Turn getActualTurn() {
 		return actualTurn;
 	}
@@ -462,12 +560,9 @@ public class TurnSystem{
 	public Date getDate() {
 		return date;
 	}
-
-	public int[] getDifferences() {
-		return differences;
-	}
-
+	
 	public Alphabet[] getAlphabet() {
 		return alphabet;
 	}
+
 }
