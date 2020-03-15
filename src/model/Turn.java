@@ -1,7 +1,8 @@
 package model;
+import java.io.Serializable;
 import java.time.*;
 
-public class Turn implements Comparable<Turn>{
+public class Turn implements Comparable<Turn>, Serializable{
 
 	private char letter;
 	private String number;

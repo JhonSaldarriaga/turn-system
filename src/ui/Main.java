@@ -1,21 +1,11 @@
 package ui;
 
 import model.*;
-
 import java.util.*;
 
-import customExceptions.ArrayListEmptyException;
-import customExceptions.ExistActiveTurnException;
-import customExceptions.IsSuspendedException;
-import customExceptions.MandatoryParameterNotTypeException;
-import customExceptions.TypeTurnExistException;
-import customExceptions.UserExistException;
-import customExceptions.UserNotRegisterException;
-
+import customExceptions.*;
 import java.io.*;
 import java.time.*;
-import java.time.temporal.ChronoField;
-import java.time.temporal.ChronoUnit;
 
 public class Main {
 
@@ -23,17 +13,20 @@ public class Main {
 	private TurnSystem ts;
 	private boolean firstTime;
 	private TypeId typeId;
+	private  static final String TS_DATA = "data/TS.obj";
 	
-	public static void main(String [] args) throws InterruptedException, IOException{
+	public static void main(String [] args) throws ClassNotFoundException{
 		Main main = new Main();
 		main.menu();
 		//main.pruebas();
 	}
 	
-	public Main() {
+	public Main() throws ClassNotFoundException {
 		scan = new Scanner(System.in);
-		firstTime = true;
-		chooseBeggin();
+		load();
+		if(firstTime) {
+			chooseBeggin();	
+		}
 	}
 	
 	public void pruebas() throws IOException{
@@ -44,7 +37,6 @@ public class Main {
 	}
 	
 	public void menu() {
-		
 		boolean continueOption;
 		int option = 0;
 		boolean finish = false;
@@ -102,6 +94,7 @@ public class Main {
 				break;
 			case 12:System.out.println("Bye.");
 					finish = true;
+					save();
 				break;
 			default: System.out.println("Invalid option");
 				break;
@@ -110,6 +103,42 @@ public class Main {
 			System.out.println("-----------------------");
 			ts.upgradeTheTime();
 		}
+	}
+	
+	public void save() {
+		File file = new File(TS_DATA);
+		if(!file.exists()) {
+			try {
+				file.createNewFile();
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
+		}
+		try {
+			FileOutputStream fo = new FileOutputStream(file);
+			ObjectOutputStream oo = new ObjectOutputStream(fo);
+			oo.writeObject(ts);
+			oo.close();
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	@SuppressWarnings("resource")
+	public void load() throws ClassNotFoundException {
+		File file = new File(TS_DATA);
+		if(file.exists()) {
+			firstTime = false;
+			try {
+				FileInputStream fi = new FileInputStream(TS_DATA);
+				ObjectInputStream oi;
+				oi = new ObjectInputStream(fi);
+				ts = (TurnSystem)oi.readObject();
+			} catch (IOException e) {
+				System.out.println(e.getMessage());
+			}
+		}else
+			firstTime = true;
 	}
 	
 	public void generateReportUsers() {

@@ -8,7 +8,8 @@ import customExceptions.*;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.io.*;
-public class TurnSystem{
+@SuppressWarnings("serial")
+public class TurnSystem implements Serializable{
 
 	public static final int WAIT_TIME = 15;
 	public static final String DATABASE_NAME = "data/USER_DATA.csv";//first_name,last_name,number,Country

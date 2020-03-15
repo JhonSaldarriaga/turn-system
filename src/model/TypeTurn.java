@@ -1,6 +1,8 @@
 package model;
 
-public class TypeTurn implements Comparable<TypeTurn>{
+import java.io.Serializable;
+
+public class TypeTurn implements Comparable<TypeTurn>, Serializable{
 
 	private float duration;
 	private String type;

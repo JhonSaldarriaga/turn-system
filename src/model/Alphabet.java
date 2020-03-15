@@ -1,6 +1,8 @@
 package model;
 
-public enum Alphabet {
+import java.io.Serializable;
+
+public enum Alphabet implements Serializable{
 
 	A('A',1),B('B',2),C('C',3),
 	D('D',4),E('E',5),F('F',6),

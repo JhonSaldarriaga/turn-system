@@ -1,6 +1,8 @@
 package model;
 
-public enum TypeId {
+import java.io.Serializable;
+
+public enum TypeId implements Serializable{
 
 	CD("citizenship_card"),
 	ID("identity_card"),
